@@ -23,8 +23,8 @@ $("#send").addEventListener("click",()=>{
 const name=$("#name").value.trim(), p=$("#phone").value.trim(), note=$("#note").value.trim(), d=date.value, t=$("#time").value;
 if(!name||!p){alert("Lütfen ad soyad ve telefonunuzu yazın.");return}
 const pretty=new Intl.DateTimeFormat("tr-TR",{day:"2-digit",month:"long",year:"numeric"}).format(new Date(d+"T12:00:00"));
-const msg="Merhaba Mira Güzellik Salonu, randevu talebinde bulunmak istiyorum.%0A%0AHizmet: "+selectedService+"%0ATarih: "+pretty+"%0ASaat: "+t+"%0AAd Soyad: "+name+"%0ATelefon: "+p+(note?"%0ANot: "+note:"");
-const url="https://wa.me/"+phone+"?text="+encodeURIComponent(decodeURIComponent(msg));
+const msg="Merhaba Mira Güzellik Salonu, randevu talebinde bulunmak istiyorum.\n\nHizmet: "+selectedService+"\nTarih: "+pretty+"\nSaat: "+t+"\nAd Soyad: "+name+"\nTelefon: "+p+(note?"\nNot: "+note:"");
+const url="https://wa.me/"+phone+"?text="+encodeURIComponent(msg);
 $("#final-wa").href=url; showStep(4); window.open(url,"_blank","noopener,noreferrer");
 });
 
