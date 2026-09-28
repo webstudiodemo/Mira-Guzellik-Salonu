@@ -1,48 +1,26 @@
-(() => {
-const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const phone="903124183102";
-const wa=(text)=>{const url="https://wa.me/"+phone+"?text="+encodeURIComponent(text); window.open(url,"_blank","noopener,noreferrer"); return url;};
-
-window.addEventListener("load",()=>{setTimeout(()=>$(".intro-loader")?.style.setProperty("transform","translateY(-100%)"),1900);});
-const observer=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("visible");observer.unobserve(e.target)}}),{threshold:.12});
-$$(".reveal").forEach(e=>observer.observe(e));
-
-let selectedService="";
-const modal=$("#bookingModal"), steps=$$(".modal-step",modal), dots=$$(".steps i",modal);
-function showStep(n){steps.forEach(x=>x.classList.toggle("active",+x.dataset.step===n));dots.forEach((x,i)=>x.classList.toggle("active",i<n));}
-function openBooking(service=""){selectedService=service;showStep(1);modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";}
-function closeBooking(){modal.classList.remove("open");modal.setAttribute("aria-hidden","true");document.body.style.overflow="";}
-$$("[data-book]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();openBooking()}));
-$$("[data-close]").forEach(b=>b.addEventListener("click",closeBooking));
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeBooking();$("#detailModal")?.classList.remove("open")}});
-
-$$("[data-choice]").forEach(b=>b.addEventListener("click",()=>{selectedService=b.dataset.choice;showStep(2)}));
-const date=$("#date"); const today=new Date(); today.setMinutes(today.getMinutes()-today.getTimezoneOffset()); date.min=today.toISOString().slice(0,10);
-$("#next").addEventListener("click",()=>{if(!date.value||!$("#time").value){alert("Lütfen gün ve saat seçin.");return}showStep(3)});
-$("#send").addEventListener("click",()=>{
-const name=$("#name").value.trim(), p=$("#phone").value.trim(), note=$("#note").value.trim(), d=date.value, t=$("#time").value;
-if(!name||!p){alert("Lütfen ad soyad ve telefonunuzu yazın.");return}
-const pretty=new Intl.DateTimeFormat("tr-TR",{day:"2-digit",month:"long",year:"numeric"}).format(new Date(d+"T12:00:00"));
-const msg="Merhaba Mira Güzellik Salonu, randevu talebinde bulunmak istiyorum.\n\nHizmet: "+selectedService+"\nTarih: "+pretty+"\nSaat: "+t+"\nAd Soyad: "+name+"\nTelefon: "+p+(note?"\nNot: "+note:"");
-const url="https://wa.me/"+phone+"?text="+encodeURIComponent(msg);
-$("#final-wa").href=url; showStep(4); window.open(url,"_blank","noopener,noreferrer");
-});
-
-$$("[data-wa]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();wa("Merhaba Mira Güzellik Salonu, randevu ve hizmetler hakkında bilgi almak istiyorum.")}));
-
-const details={
-"Protez Tırnak":"Tırnak görünümünü kişisel tercihinize göre şekillendiren profesyonel uygulama.",
-"Cilt Bakımı":"Cildin ihtiyacına göre bakım, temizleme, nemlendirme ve canlandırma odaklı uygulamalar.",
-"İpek Kirpik":"Kirpik görünümünü belirginleştirmeye yönelik uygulama seçenekleri.",
-"Manikür":"El ve tırnak bakımını bir araya getiren profesyonel bakım.",
-"Kalıcı Oje":"Bakımlı ve uzun süre düzenli görünen tırnaklar için uygulama."
-};
-const detail=$("#detailModal");
-$$("[data-service]").forEach(card=>card.addEventListener("click",()=>{const title=card.dataset.service;$("#detailTitle").textContent=title;$("#detailText").textContent=details[title]||"Mira hizmetleri hakkında güncel bilgi ve uygunluk için ekibimizle iletişime geçebilirsiniz.";detail.classList.add("open");detail.setAttribute("aria-hidden","false");$("#detailBook").onclick=()=>{detail.classList.remove("open");openBooking(title)}}));
-$$("[data-detail-close]").forEach(x=>x.addEventListener("click",()=>{detail.classList.remove("open");detail.setAttribute("aria-hidden","true")}));
-
-// Subtle pointer parallax on desktop.
-if(matchMedia("(pointer:fine)").matches){
-document.addEventListener("pointermove",e=>{const x=(e.clientX/innerWidth-.5),y=(e.clientY/innerHeight-.5);document.documentElement.style.setProperty("--mx",x.toFixed(3));document.documentElement.style.setProperty("--my",y.toFixed(3));});
-}
+(()=>{const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)],phone="903124183102",STORE="miraAvailabilityV1",hours=[9,10,11,12,13,14,15,16,17,18],days=["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"],def={closedDays:[0],blocked:{}};
+const read=()=>{try{return Object.assign({},def,JSON.parse(localStorage.getItem(STORE)||"{}"))}catch{return Object.assign({},def)}};let state=read();const save=()=>localStorage.setItem(STORE,JSON.stringify(state));
+const pretty=v=>new Intl.DateTimeFormat("tr-TR",{day:"2-digit",month:"long",year:"numeric"}).format(new Date(v+"T12:00:00")),iso=d=>d.toISOString().slice(0,10);
+window.addEventListener("load",()=>setTimeout(()=>{$(".intro-loader")?.style.setProperty("transform","translateY(-100%)")},1900));
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("visible");obs.unobserve(e.target)}}),{threshold:.1});$$(".reveal").forEach((e,i)=>{e.style.setProperty("--delay",i%4*70+"ms");obs.observe(e)});
+let selected="";const modal=$("#bookingModal"),steps=$$(".modal-step",modal),dots=$$(".steps i",modal);
+const show=n=>{steps.forEach(x=>x.classList.toggle("active",+x.dataset.step===n));dots.forEach((x,i)=>x.classList.toggle("active",i<n))};
+const openBooking=s=>{selected=s||"";show(1);modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"};const close=()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");document.body.style.overflow=""};
+$$("[data-book]").forEach(b=>b.onclick=e=>{e.preventDefault();openBooking()});$$("[data-close]").forEach(b=>b.onclick=close);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){close();$("#detailModal")?.classList.remove("open")}});
+function status(v){const d=new Date(v+"T12:00:00"),blocked=(state.blocked||{})[v]||[];if(state.closedDays.includes(d.getDay()))return"closed";return blocked.length===hours.length?"closed":blocked.length>=5?"limited":"available"}
+function renderCalendar(){const strip=$("#calendarStrip"),grid=$("#slotGrid");if(!strip||!grid)return;strip.innerHTML="";grid.innerHTML="";let today=new Date();today.setHours(12,0,0,0),chosen=$("#date").value||"";
+for(let i=0;i<14;i++){let d=new Date(today);d.setDate(today.getDate()+i);let v=iso(d),s=status(v),b=document.createElement("button");b.type="button";b.className="calendar-day "+s+(v===chosen?" active":"");b.disabled=s==="closed";b.innerHTML="<small>"+days[d.getDay()].slice(0,3)+"</small><b>"+d.getDate()+"</b><small>"+new Intl.DateTimeFormat("tr-TR",{month:"short"}).format(d)+"</small>";b.onclick=()=>{$("#date").value=v;$("#time").value="";renderCalendar()};strip.appendChild(b)}
+if(!chosen||status(chosen)==="closed"){$("#availabilityLabel").textContent="Bir gün seçin";$("#next").disabled=true;grid.innerHTML='<div class="slot-empty">Önce açık bir gün seçin.</div>';return}
+$("#availabilityLabel").textContent=pretty(chosen);const blocked=(state.blocked||{})[chosen]||[];hours.forEach(h=>{let b=document.createElement("button");b.type="button";b.className="slot"+(blocked.includes(h)?" full":"");b.textContent=String(h).padStart(2,"0")+":00";b.disabled=blocked.includes(h);b.onclick=()=>{$("#time").value=b.textContent;$$(".slot",grid).forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#next").disabled=false};grid.appendChild(b)});$("#next").disabled=!$("#time").value}
+$$("[data-choice]").forEach(b=>b.onclick=()=>{selected=b.dataset.choice;renderCalendar();show(2)});
+$("#next").onclick=()=>{if(!$("#date").value||!$("#time").value)return alert("Lütfen müsait bir gün ve saat seçin.");show(3)};
+$("#send").onclick=()=>{let n=$("#name").value.trim(),p=$("#phone").value.trim(),d=$("#date").value,t=$("#time").value,note=$("#note").value.trim();if(!n||!p)return alert("Lütfen ad soyad ve telefonunuzu yazın.");let msg="Merhaba Mira Güzellik Salonu, randevu talebinde bulunmak istiyorum.\n\nHizmet: "+selected+"\nTarih: "+pretty(d)+"\nSaat: "+t+"\nAd Soyad: "+n+"\nTelefon: "+p+(note?"\nNot: "+note:""),url="https://wa.me/"+phone+"?text="+encodeURIComponent(msg);$("#final-wa").href=url;show(4);window.open(url,"_blank","noopener,noreferrer")};
+$$("[data-wa]").forEach(a=>a.onclick=e=>{e.preventDefault();window.open("https://wa.me/"+phone+"?text="+encodeURIComponent("Merhaba Mira Güzellik Salonu, randevu ve hizmetler hakkında bilgi almak istiyorum."),"_blank","noopener,noreferrer")});
+const detail=$("#detailModal"),details={"Protez Tırnak":"Tırnak görünümünü kişisel tercihinize göre şekillendiren profesyonel uygulama.","Cilt Bakımı":"Cildin ihtiyacına göre bakım, temizleme, nemlendirme ve canlandırma odaklı uygulamalar.","İpek Kirpik":"Kirpik görünümünü belirginleştirmeye yönelik uygulama seçenekleri.","Manikür":"El ve tırnak bakımını bir araya getiren profesyonel bakım.","Kalıcı Oje":"Bakımlı ve uzun süre düzenli görünen tırnaklar için uygulama."};
+$$("[data-service]").forEach(c=>c.onclick=()=>{let t=c.dataset.service;$("#detailTitle").textContent=t;$("#detailText").textContent=details[t]||"Mira hizmetleri hakkında güncel bilgi ve uygunluk için ekibimizle iletişime geçebilirsiniz.";detail.classList.add("open");$("#detailBook").onclick=()=>{detail.classList.remove("open");openBooking(t)}});$$("[data-detail-close]").forEach(x=>x.onclick=()=>detail.classList.remove("open"));
+if(matchMedia("(pointer:fine)").matches){let g=document.createElement("div");g.className="cursor-glow";document.body.appendChild(g);let tx=0,ty=0,cx=0,cy=0;document.addEventListener("pointermove",e=>{tx=e.clientX;ty=e.clientY;document.documentElement.style.setProperty("--mx",(e.clientX/innerWidth-.5).toFixed(3));document.documentElement.style.setProperty("--my",(e.clientY/innerHeight-.5).toFixed(3))});(function f(){cx+=(tx-cx)*.12;cy+=(ty-cy)*.12;g.style.left=cx+"px";g.style.top=cy+"px";requestAnimationFrame(f)})();$$(".service").forEach(c=>{c.onpointermove=e=>{let r=c.getBoundingClientRect(),x=e.clientX/r.width-r.left/r.width,y=e.clientY/r.height-r.top/r.height;c.style.transform="perspective(900px) rotateX("+(-y*3)+"deg) rotateY("+(x*3)+"deg) translateY(-3px)"};c.onpointerleave=()=>c.style.transform=""})}
+renderCalendar();
+if(new URLSearchParams(location.search).get("yonetim")==="1"){document.body.innerHTML='<main class="admin-shell"><a class="underlink" href="./">← Siteye dön</a><p class="eyebrow" style="margin-top:45px"><i></i> İşletmeci paneli</p><h1>Randevu<br><em>uygunluğu.</em></h1><p class="admin-sub">Son dakika iptallerinde saatleri kapatın; müşterinin takviminde anında dolu görünür.</p><section class="admin-grid"><div class="admin-card"><h3>Çalışma günleri</h3><div class="admin-days" id="adminDays"></div></div><div class="admin-card"><h3>Günlük saatleri kapat</h3><input id="adminDate" type="date"><div class="admin-slots" id="adminSlots"></div><div class="admin-save"><button class="primary" id="saveAdmin">Kaydet</button><button class="primary" id="resetAdmin" style="background:#3b2b30;color:#eee">Sıfırla</button></div><p class="admin-note">Bu demo sürümünde uygunluk tarayıcı hafızasında tutulur. Ortak canlı kullanım için merkezi veritabanı bağlantısı gerekir.</p></div></section></main>';
+const dw=$("#adminDays"),ad=$("#adminDate"),as=$("#adminSlots");days.forEach((n,i)=>{let d=document.createElement("div");d.className="admin-day";d.innerHTML="<label>"+n+'<input type="checkbox" '+(state.closedDays.includes(i)?"":"checked")+"></label>";d.querySelector("input").onchange=e=>{state.closedDays=state.closedDays.filter(x=>x!==i);if(!e.target.checked)state.closedDays.push(i);save()};dw.appendChild(d)});ad.min=iso(new Date());ad.value=iso(new Date());const rs=()=>{let v=ad.value,b=(state.blocked||{})[v]||[];as.innerHTML="";hours.forEach(h=>{let x=document.createElement("button");x.className="admin-slot"+(b.includes(h)?" blocked":"");x.textContent=String(h).padStart(2,"0")+":00";x.onclick=()=>{let a=new Set((state.blocked||{})[v]||[]);a.has(h)?a.delete(h):a.add(h);state.blocked[v]=[...a].sort((a,b)=>a-b);save();rs()};as.appendChild(x)})};ad.onchange=rs;$("#saveAdmin").onclick=()=>{save();alert("Uygunluk güncellendi.")};$("#resetAdmin").onclick=()=>{state=Object.assign({},def);save();location.reload()};rs()}
 })();
