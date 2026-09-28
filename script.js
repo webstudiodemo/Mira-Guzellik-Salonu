@@ -97,7 +97,7 @@ $$('.nav a').forEach(a=>a.addEventListener('click',()=>nav.classList.remove('mob
 
 // Direct WhatsApp CTA — primary appointment buttons open WhatsApp immediately.
 function openWhatsApp(message = 'Merhaba Mira Güzellik, randevu almak istiyorum. Uygun gün ve saat seçeneklerini paylaşabilir misiniz?') {
-  window.location.href = 'tel:+' + BUSINESS_PHONE;
+  window.open('https://wa.me/' + BUSINESS_PHONE + '?text=' + encodeURIComponent(message), '_blank', 'noopener,noreferrer');
 }
 $$('[data-direct-whatsapp]').forEach(el => el.addEventListener('click', e => {
   e.preventDefault();
