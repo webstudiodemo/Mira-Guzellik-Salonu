@@ -13,7 +13,28 @@ function renderCalendar(){const strip=$("#calendarStrip"),grid=$("#slotGrid");if
 for(let i=0;i<14;i++){let d=new Date(today);d.setDate(today.getDate()+i);let v=iso(d),s=status(v),b=document.createElement("button");b.type="button";b.className="calendar-day "+s+(v===chosen?" active":"");b.disabled=s==="closed";b.innerHTML="<small>"+days[d.getDay()].slice(0,3)+"</small><b>"+d.getDate()+"</b><small>"+new Intl.DateTimeFormat("tr-TR",{month:"short"}).format(d)+"</small>";b.onclick=()=>{$("#date").value=v;$("#time").value="";renderCalendar()};strip.appendChild(b)}
 if(!chosen||status(chosen)==="closed"){$("#availabilityLabel").textContent="Bir gün seçin";$("#next").disabled=true;grid.innerHTML='<div class="slot-empty">Önce açık bir gün seçin.</div>';return}
 $("#availabilityLabel").textContent=pretty(chosen);const blocked=(state.blocked||{})[chosen]||[];hours.forEach(h=>{let b=document.createElement("button");b.type="button";b.className="slot"+(blocked.includes(h)?" full":"");b.textContent=String(h).padStart(2,"0")+":00";b.disabled=blocked.includes(h);b.onclick=()=>{$("#time").value=b.textContent;$$(".slot",grid).forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#next").disabled=false};grid.appendChild(b)});$("#next").disabled=!$("#time").value}
-$$("[data-choice]").forEach(b=>b.onclick=()=>{selected=b.dataset.choice;renderCalendar();show(2)});
+$$("[data-choice]").forEach(b=>b.onclick=()=>{selected=b.dataset.choice;
+/* Scroll-driven cinematic motion */
+(()=>{
+let ticking=false;
+const update=()=>{
+ const y=window.scrollY||0;
+ document.documentElement.style.setProperty("--scrollY",y);
+ const hero=document.querySelector(".hero"), photo=document.querySelector(".hero-photo"), visual=document.querySelector(".visual-image");
+ if(hero&&photo){const p=Math.max(-1,Math.min(1,-hero.getBoundingClientRect().top/Math.max(1,hero.offsetHeight)));photo.style.transform="translate3d(calc(var(--mx)*-22px),calc(var(--my)*-16px + "+(p*42)+"px),0) scale("+(1.08+p*.025)+")"}
+ if(visual){const r=visual.getBoundingClientRect(),p=(innerHeight/2-r.top)/Math.max(1,innerHeight);visual.style.transform="translate3d(calc(var(--mx)*-12px),"+(p*30-15)+"px,0) scale(1.045)"}
+ ticking=false;
+};
+addEventListener("scroll",()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+addEventListener("resize",update);update();
+})();
+
+document.addEventListener("DOMContentLoaded",()=>{
+ const h=document.querySelector(".header");
+ if(h)addEventListener("scroll",()=>h.classList.toggle("scrolled",scrollY>50),{passive:true});
+});
+
+renderCalendar();show(2)});
 $("#next").onclick=()=>{if(!$("#date").value||!$("#time").value)return alert("Lütfen müsait bir gün ve saat seçin.");show(3)};
 $("#send").onclick=()=>{let n=$("#name").value.trim(),p=$("#phone").value.trim(),d=$("#date").value,t=$("#time").value,note=$("#note").value.trim();if(!n||!p)return alert("Lütfen ad soyad ve telefonunuzu yazın.");let msg="Merhaba Mira Güzellik Salonu, randevu talebinde bulunmak istiyorum.\n\nHizmet: "+selected+"\nTarih: "+pretty(d)+"\nSaat: "+t+"\nAd Soyad: "+n+"\nTelefon: "+p+(note?"\nNot: "+note:""),url="https://wa.me/"+phone+"?text="+encodeURIComponent(msg);$("#final-wa").href=url;show(4);window.open(url,"_blank","noopener,noreferrer")};
 $$("[data-wa]").forEach(a=>a.onclick=e=>{e.preventDefault();window.open("https://wa.me/"+phone+"?text="+encodeURIComponent("Merhaba Mira Güzellik Salonu, randevu ve hizmetler hakkında bilgi almak istiyorum."),"_blank","noopener,noreferrer")});
