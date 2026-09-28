@@ -131,3 +131,45 @@ body{overscroll-behavior-x:none}
 .marquee-track span{display:block;flex:0 0 auto;animation:none!important}
 @keyframes marquee{to{transform:translate3d(-50%,0,0)}}
 @media(prefers-reduced-motion:reduce){.marquee-track{animation:none!important}}
+
+/* Mobile booking scroll fix: keep the modal panel independently scrollable. */
+.booking-open .booking-panel{
+  overscroll-behavior:contain;
+}
+.booking-panel{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+@media(max-width:850px){
+  .modal{
+    display:block;
+    overflow:hidden;
+  }
+  .booking-panel{
+    width:100%;
+    max-width:none;
+    height:100dvh;
+    max-height:100dvh;
+    min-height:0;
+    margin:0;
+    padding:72px 22px 32px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+    touch-action:pan-y;
+  }
+  .booking-panel .modal-step{
+    min-height:0;
+  }
+  .booking-panel .close{
+    position:fixed;
+    z-index:5;
+    right:18px;
+    top:14px;
+  }
+  .booking-panel .steps{
+    padding-bottom:8px;
+  }
+}
