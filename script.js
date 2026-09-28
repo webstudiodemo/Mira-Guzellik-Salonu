@@ -27,9 +27,12 @@ function initLenis(){
     autoRaf:false,
     smoothWheel:true,
     syncTouch:true,
+    allowNestedScroll:true,
     lerp:.085,
     wheelMultiplier:.9
   });
+
+  window.miraLenis=lenis;
 
   lenis.on("scroll",ScrollTrigger.update);
   gsap.ticker.add(time=>lenis.raf(time*1000));
@@ -301,13 +304,17 @@ function openBooking(service=""){
   showStep(1);
   modal?.classList.add("open");
   modal?.setAttribute("aria-hidden","false");
+  document.body.classList.add("booking-open");
   document.body.style.overflow="hidden";
+  window.miraLenis?.stop();
 }
 
 function closeBooking(){
   modal?.classList.remove("open");
   modal?.setAttribute("aria-hidden","true");
+  document.body.classList.remove("booking-open");
   document.body.style.overflow="";
+  window.miraLenis?.start();
 }
 
 function dayStatus(value){
