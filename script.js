@@ -1,5 +1,5 @@
 /* Mira — cinematic, scroll-reactive GitHub Pages implementation */
-const WHATSAPP_NUMBER = '903124183102';
+const BUSINESS_PHONE = '903124183102';
 
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
@@ -97,8 +97,7 @@ $$('.nav a').forEach(a=>a.addEventListener('click',()=>nav.classList.remove('mob
 
 // Direct WhatsApp CTA — primary appointment buttons open WhatsApp immediately.
 function openWhatsApp(message = 'Merhaba Mira Güzellik, randevu almak istiyorum. Uygun gün ve saat seçeneklerini paylaşabilir misiniz?') {
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  window.location.href = 'tel:+' + BUSINESS_PHONE;
 }
 $$('[data-direct-whatsapp]').forEach(el => el.addEventListener('click', e => {
   e.preventDefault();
